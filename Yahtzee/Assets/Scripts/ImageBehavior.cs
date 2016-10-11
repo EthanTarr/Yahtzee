@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class ImageBehavior : MonoBehaviour {
 	private bool check = false;
@@ -29,6 +30,14 @@ public class ImageBehavior : MonoBehaviour {
 		} else if(!(Input.mousePosition.x <= (transform.position.x + rightOuterBorder) && Input.mousePosition.x >= (transform.position.x + leftOuterBorder)
 			&& Input.mousePosition.y <= (transform.position.y + topOuterBorder) && Input.mousePosition.y >= (transform.position.y + bottomOuterBorder)) && check) {
 			check = false;
+		}
+	}
+
+	public void Highlight() {
+		if (!this.gameObject.GetComponent<Image> ().color.Equals (Color.gray)) {
+			this.gameObject.GetComponent<Image> ().color = Color.gray;
+		} else {
+			this.gameObject.GetComponent<Image> ().color = Color.white;
 		}
 	}
 }

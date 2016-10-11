@@ -30,17 +30,21 @@ public class DiceBehavior1 : MonoBehaviour {
 			//GameObject.Find ("GameManager").GetComponent<GameManager> ().removeDice (rolled);
 			GameObject.Find ("GameManager").GetComponent<GameManager> ().removeDice (rolled);
 		}
-
-		if(this.tag.Equals("Highlight")) {
-			foreach (SpriteRenderer sr in this.GetComponentsInChildren<SpriteRenderer>()) {
-				sr.color = Color.grey;
-			}
-		}
 	}
 
 	void OnMouseDown() {
 		if (this.GetComponent<Rigidbody> ().IsSleeping ()) {
-			this.tag = "Highlight";
+			if (this.tag.Equals ("Highlight")) {
+				this.tag = "Untagged";
+				foreach (SpriteRenderer sr in this.GetComponentsInChildren<SpriteRenderer>()) {
+					sr.color = Color.white;
+				}
+			} else {
+				this.tag = "Highlight";
+				foreach (SpriteRenderer sr in this.GetComponentsInChildren<SpriteRenderer>()) {
+					sr.color = Color.grey;
+				}
+			}
 		}
 	}
 
