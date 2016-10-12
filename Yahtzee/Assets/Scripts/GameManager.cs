@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
 	public bool firstTurn = true;
@@ -7,10 +8,13 @@ public class GameManager : MonoBehaviour {
 	public bool thirdTurn = false;
 	public ArrayList dices;
 	private bool counted = false;
+	private GameObject ScoreSheet;
 
 
 	void Start () {
 		dices = new ArrayList();
+		ScoreSheet = GameObject.Find ("ScoreSheet");
+		ScoreSheet.SetActive (false);
 	}
 
 	void Update () {
@@ -35,6 +39,8 @@ public class GameManager : MonoBehaviour {
 			dicesDebug ();
 		} else if (Input.GetKeyDown ("q")) {
 			sortArray ();
+		} else if (Input.GetKeyDown ("p")) {
+			toggleScoreSheet ();
 		}
 	}
 
@@ -50,6 +56,14 @@ public class GameManager : MonoBehaviour {
 			dices.Remove (die);
 		} else {
 			Debug.Log ("ERROR: die is not in list");
+		}
+	}
+
+	public void toggleScoreSheet() {
+		if (ScoreSheet.activeSelf) {
+			ScoreSheet.SetActive (false);
+		} else {
+			ScoreSheet.SetActive (true);
 		}
 	}
 
