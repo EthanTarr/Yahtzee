@@ -55,6 +55,7 @@ public class Spins : MonoBehaviour {
 	}
 
 	IEnumerator SummonDice(float num) {
+		GameObject.Find ("RollButton").GetComponent<Button> ().enabled = false;
 		int i = 0;
 		while (i < num) {
 			roll = (GameObject)Instantiate (dice, dicePosition, Quaternion.identity);
@@ -95,7 +96,6 @@ public class Spins : MonoBehaviour {
 				saves [savedDice].SetActive(true);
 				saves[savedDice].GetComponent<Image> ().sprite = 
 				Resources.Load<Sprite> ("Images/DieSide" + (int)die.GetComponent<DiceBehavior1> ().rolled);
-				//GO.removeDice (die.GetComponent<DiceBehavior1> ().rolled);
 				Destroy (die);
 				savedDice++;
 			}
@@ -117,6 +117,24 @@ public class Spins : MonoBehaviour {
 
 	public void StartSummonDice() {
 		Dice (numOfDice);
+	}
+
+	public void reset() {
+		GO.firstTurn = true;
+		GO.secondTurn = false;
+		GO.thirdTurn = false;
+		for (savedDice = savedDice; savedDice >= 0; savedDice--) {
+			saves [savedDice].SetActive (false);
+		}
+		savedDice = 0;
+		foreach (GameObject die in GameObject.FindGameObjectsWithTag("Dice")) {
+			Destroy (die);
+		}
+		foreach (GameObject die in GameObject.FindGameObjectsWithTag("Highlight")) {
+			Destroy (die);
+		}
+		GO.dices = new ArrayList ();
+		RBB.FirstTurn ();
 	}
 
 	public void unsave() {

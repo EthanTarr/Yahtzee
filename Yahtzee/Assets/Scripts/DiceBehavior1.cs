@@ -10,7 +10,6 @@ public class DiceBehavior1 : MonoBehaviour {
 	void Start () {
 		prevPos = -10000;
 		activated = false;
-	
 	}
 	
 	// Update is called once per frame
@@ -35,7 +34,7 @@ public class DiceBehavior1 : MonoBehaviour {
 	void OnMouseDown() {
 		if (this.GetComponent<Rigidbody> ().IsSleeping ()) {
 			if (this.tag.Equals ("Highlight")) {
-				this.tag = "Untagged";
+				this.tag = "Dice";
 				foreach (SpriteRenderer sr in this.GetComponentsInChildren<SpriteRenderer>()) {
 					sr.color = Color.white;
 				}
