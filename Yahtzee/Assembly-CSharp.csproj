@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\ButtonBehavior.cs" />
+     <Compile Include="Assets\Scripts\CloseOnExit.cs" />
      <Compile Include="Assets\Scripts\DiceBehavior1.cs" />
      <Compile Include="Assets\Scripts\GameManager.cs" />
      <Compile Include="Assets\Scripts\ImageBehavior.cs" />

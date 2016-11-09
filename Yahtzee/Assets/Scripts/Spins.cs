@@ -27,7 +27,7 @@ public class Spins : MonoBehaviour {
 		saves = new GameObject [5];
 		for (int i = 1; i <= 5; i++) {
 			saves[i - 1] = (GameObject.Find ("Saved" + i));
-			saves [i - 1].SetActive (false);
+			//saves [i - 1].SetActive (false);
 		}
 	}
 	
@@ -68,37 +68,36 @@ public class Spins : MonoBehaviour {
 	}
 
 	void Dice(float num) {
-		if (GO.firstTurn || GO.secondTurn || GO.thirdTurn) {
-			foreach (GameObject die in GameObject.FindGameObjectsWithTag("Dice")) {
-				GO.removeDice (die.GetComponent<DiceBehavior1> ().rolled);
-				Destroy (die);
-			}
+		if (GO.secondTurn || GO.thirdTurn) {
+			savedDice = 5;
 			foreach (GameObject image in GameObject.FindGameObjectsWithTag("ImageHighlight")) {
 				saves [(int.Parse (image.name.Substring (5))) - 1].GetComponent<ButtonBehavior> ().Highlight ();
 				saves [(int.Parse (image.name.Substring (5))) - 1].SetActive (false);
-				GO.removeDice (float.Parse(image.GetComponent<Image>().sprite.name.Substring(7)));
+				GO.removeDice (float.Parse (image.GetComponent<Image> ().sprite.name.Substring (7)));
 				savedDice--;
 			}
 			for (int i = 1; i < 5; i++) {
-				if(saves[i].activeSelf) {
+				if (saves [i].activeSelf) {
 					int j = i;
-					while(j > 0 && !saves[j - 1].activeSelf) {
-						GameObject curtemp = saves[j];
-						GameObject prevtemp = saves[j - 1];
-						prevtemp.SetActive(true);
+					while (j > 0 && !saves [j - 1].activeSelf) {
+						GameObject curtemp = saves [j];
+						GameObject prevtemp = saves [j - 1];
+						prevtemp.SetActive (true);
 						prevtemp.GetComponent<Image> ().sprite = curtemp.GetComponent<Image> ().sprite;
 						curtemp.SetActive (false);
 						j--;
 					}
 				}
 			}
-			foreach (GameObject die in GameObject.FindGameObjectsWithTag("Highlight")) {
+			/*foreach (GameObject die in GameObject.FindGameObjectsWithTag("Highlight")) {
 				saves [savedDice].SetActive(true);
 				saves[savedDice].GetComponent<Image> ().sprite = 
 				Resources.Load<Sprite> ("Images/DieSide" + (int)die.GetComponent<DiceBehavior1> ().rolled);
 				Destroy (die);
 				savedDice++;
-			}
+			}*/
+			StartCoroutine (SummonDice (num - savedDice));
+		} else {
 			StartCoroutine (SummonDice (num - savedDice));
 		}
 		if (GO.firstTurn) {

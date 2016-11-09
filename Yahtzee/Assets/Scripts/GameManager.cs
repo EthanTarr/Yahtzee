@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour {
 	public bool firstTurn = true;
 	public bool secondTurn = false;
 	public bool thirdTurn = false;
+	public int DiceIconSpeed = 1;
 	public ArrayList dices;
 	private GameObject ScoreSheet;
 	private GameObject Aces;
@@ -22,6 +23,7 @@ public class GameManager : MonoBehaviour {
 	private GameObject LargeStraight;
 	private GameObject Chance;
 	private GameObject Yahtzee;
+	private GameObject[] Saveds;
 	private Dictionary<string, bool> Scored;
 	private Color HighlightedButtonColor = new Color (210/255f, 187/255f, 118/255f, 138/255f);
 	private Color LockedColor = new Color(200/255f, 200/255f, 200/255f, 128/255f);
@@ -31,6 +33,11 @@ public class GameManager : MonoBehaviour {
 		populateGameObjects ();
 		ScoreSheet.SetActive (false);
 		populateDictionary();
+		Saveds [0].SetActive (false);
+		Saveds[1].SetActive (false);
+		Saveds[2].SetActive (false);
+		Saveds[3].SetActive (false);
+		Saveds[4].SetActive (false);
 	}
 
 	void Update () {
@@ -89,21 +96,23 @@ public class GameManager : MonoBehaviour {
 		Chance = GameObject.Find ("ChanceInput");
 		Yahtzee = GameObject.Find ("YahtzeeInput");
 		ScoreSheet = GameObject.Find ("ScoreSheet");
+		Saveds = new GameObject[5];
+		Saveds[0] = GameObject.Find ("Saved1");
+		Saveds[1] = GameObject.Find ("Saved2");
+		Saveds[2] = GameObject.Find ("Saved3");
+		Saveds[3] = GameObject.Find ("Saved4");
+		Saveds[4] = GameObject.Find ("Saved5");
 	}
 
 	public void addDice(float die) {
-		//Debug.Log (die);
-		if (dices.Count >= 5) {
-		} else {
-			
-			dices.Add (die);
-			//Debug.Log ("added " + die);
-			if (dices.Count == 5) {
-				if (GameObject.Find ("RollButton")) {
-					GameObject.Find ("RollButton").GetComponent<Button> ().enabled = true;
-				}
-				checkSpecialCases ();
+		dices.Add (die);
+		if (dices.Count == 5) {
+			if (GameObject.Find ("RollButton")) {
+				GameObject.Find ("RollButton").GetComponent<Button> ().enabled = true;
 			}
+			sortArray ();
+			checkSpecialCases ();
+			addDiceToIcons ();
 		}
 	}
 
@@ -116,11 +125,41 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
+	public void addDiceToIcons() {
+		ArrayList Dices = new ArrayList ();
+		int saves = 0;
+		foreach (GameObject save in GameObject.FindGameObjectsWithTag("Image")) {
+			if (save.activeSelf) {
+				saves++;
+				Dices.Add (new GameObject ());
+			}
+		}
+		foreach (GameObject die in GameObject.FindGameObjectsWithTag("Dice")) {
+			Dices.Add (die);
+		}
+		for (int i = saves + 1; i < Dices.Count; i++) {
+			int j = i;
+			while(j > 0 && ((GameObject)Dices[j-1]).GetComponent<DiceBehavior1>().rolled > ((GameObject)Dices[j]).GetComponent<DiceBehavior1>().rolled) {
+				GameObject temp = ((GameObject)Dices [j]);
+				Dices [j] = Dices [j - 1];
+				Dices [j - 1] = temp;
+				j = j - 1;
+			}
+		}
+		for (int i = saves; i < Dices.Count; i++) {
+			Saveds [i].GetComponent<Image> ().sprite =
+				Resources.Load<Sprite> ("Images/DieSide" + (int)(((GameObject)Dices [i]).GetComponent<DiceBehavior1> ().rolled));
+			Saveds [i].SetActive(true);
+			Destroy ((UnityEngine.Object)Dices [i]);
+		}
+	}
+
 	public void toggleScoreSheet() {
 		if (ScoreSheet.activeSelf) {
-			ScoreSheet.SetActive (false);
+			ScoreSheet.GetComponent<Animator> ().SetTrigger ("Close");
 		} else {
 			ScoreSheet.SetActive (true);
+			ScoreSheet.GetComponent<Animator> ().SetTrigger ("Open");
 		}
 	}
 
@@ -233,7 +272,6 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public bool StraightScore(int kind) {
-		sortArray ();
 		if (kind != 4 && kind != 5) {
 			Debug.Log ("Wrong kind of straight");
 			return false;
@@ -259,7 +297,6 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public bool FullHouseScore() {
-		sortArray ();
 		float value = (float)dices [0];
 		int count = 1;
 		for (int i = 1; i < 5; i++) {
