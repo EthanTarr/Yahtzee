@@ -8,7 +8,10 @@ public class GameManager : MonoBehaviour {
 	public bool secondTurn = false;
 	public bool thirdTurn = false;
 	public int DiceIconSpeed = 1;
+	public int numOfDice = 1;
 	public ArrayList dices;
+	private int savedDice = 0;
+	private Vector3 dicePosition;
 	private GameObject ScoreSheet;
 	private GameObject Aces;
 	private GameObject Twos;
@@ -23,8 +26,11 @@ public class GameManager : MonoBehaviour {
 	private GameObject LargeStraight;
 	private GameObject Chance;
 	private GameObject Yahtzee;
+	private GameObject dice;
+	private GameObject roll;
 	private GameObject[] Saveds;
 	private Dictionary<string, bool> Scored;
+	private RollButtonBehavior RBB;
 	private Color HighlightedButtonColor = new Color (210/255f, 187/255f, 118/255f, 138/255f);
 	private Color LockedColor = new Color(200/255f, 200/255f, 200/255f, 128/255f);
 
@@ -33,11 +39,10 @@ public class GameManager : MonoBehaviour {
 		populateGameObjects ();
 		ScoreSheet.SetActive (false);
 		populateDictionary();
-		Saveds [0].SetActive (false);
-		Saveds[1].SetActive (false);
-		Saveds[2].SetActive (false);
-		Saveds[3].SetActive (false);
-		Saveds[4].SetActive (false);
+		RBB = GameObject.Find ("RollButton").GetComponent<RollButtonBehavior> ();
+		dice.SetActive (false);
+		//dicePosition = new Vector3 (0, 2, -5);
+		expandCarpet ();
 	}
 
 	void Update () {
@@ -50,17 +55,28 @@ public class GameManager : MonoBehaviour {
 			toggleScoreSheet ();
 		} else if (Input.GetKeyDown ("t")) {
 			dices = new ArrayList ();
-			dices.Add (6f);
-			dices.Add (6f);
-			dices.Add (5f);
-			dices.Add (5f);
-			dices.Add (5f);
-			Debug.Log ("FH" + FullHouseScore ());
-			Debug.Log ("SMS" + StraightScore (4));
-			Debug.Log ("LGS" + StraightScore (5));
-			Debug.Log ("3K" + OfAKindScore (3));
-			Debug.Log ("4K" + OfAKindScore (4));
-			Debug.Log ("YTZ" + YahtzeeScore ());
+			dices.Add (5);
+			dices.Add (5);
+			dices.Add (5);
+			dices.Add (5);
+			dices.Add (5);
+			Debug.Log ("FH " + FullHouseScore ());
+			Debug.Log ("SMS " + StraightScore (4));
+			Debug.Log ("LGS " + StraightScore (5));
+			Debug.Log ("3K " + OfAKindScore (3));
+			Debug.Log ("4K " + OfAKindScore (4));
+			Debug.Log ("YTZ " + YahtzeeScore ());
+		}
+	}
+
+	private void expandCarpet() {
+		GameObject cp = GameObject.Find ("Carpet");
+		GameObject cps = GameObject.Find ("Carpets");
+		for (int i = -35; i < 35; i++) {
+			for (int j = -20; j < 20; j++) {
+				GameObject temp = (GameObject)Instantiate (cp, cp.transform.position + new Vector3 ((float)(i * 1.795619), 0, (float)(j * 7.683)), cp.transform.rotation);
+				temp.transform.parent = cps.transform;
+			}
 		}
 	}
 
@@ -96,15 +112,15 @@ public class GameManager : MonoBehaviour {
 		Chance = GameObject.Find ("ChanceInput");
 		Yahtzee = GameObject.Find ("YahtzeeInput");
 		ScoreSheet = GameObject.Find ("ScoreSheet");
+		dice = GameObject.Find ("Dice");
 		Saveds = new GameObject[5];
-		Saveds[0] = GameObject.Find ("Saved1");
-		Saveds[1] = GameObject.Find ("Saved2");
-		Saveds[2] = GameObject.Find ("Saved3");
-		Saveds[3] = GameObject.Find ("Saved4");
-		Saveds[4] = GameObject.Find ("Saved5");
+		for (int i = 1; i <= 5; i++) {
+			Saveds[i - 1] = (GameObject.Find ("Saved" + i));
+			Saveds [i - 1].SetActive (false);
+		}
 	}
 
-	public void addDice(float die) {
+	public void addDice(int die) {
 		dices.Add (die);
 		if (dices.Count == 5) {
 			if (GameObject.Find ("RollButton")) {
@@ -116,7 +132,7 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
-	public void removeDice(float die) {
+	public void removeDice(int die) {
 		//Debug.Log ("removing " + die);
 		if (dices.Contains (die)) {
 			dices.Remove (die);
@@ -126,31 +142,30 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public void addDiceToIcons() {
-		ArrayList Dices = new ArrayList ();
-		int saves = 0;
+		ArrayList Collection = new ArrayList (); //GameObjects of rolled dice
+
+		//find how many dice were saved from last throw
 		foreach (GameObject save in GameObject.FindGameObjectsWithTag("Image")) {
 			if (save.activeSelf) {
-				saves++;
-				Dices.Add (new GameObject ());
+				Collection.Add(new GameObject()); // temp gameobject to keep indexing the same
 			}
 		}
+
+		//find all the dice that have been rolled and save their values
 		foreach (GameObject die in GameObject.FindGameObjectsWithTag("Dice")) {
-			Dices.Add (die);
+			Collection.Add (die);
 		}
-		for (int i = saves + 1; i < Dices.Count; i++) {
-			int j = i;
-			while(j > 0 && ((GameObject)Dices[j-1]).GetComponent<DiceBehavior1>().rolled > ((GameObject)Dices[j]).GetComponent<DiceBehavior1>().rolled) {
-				GameObject temp = ((GameObject)Dices [j]);
-				Dices [j] = Dices [j - 1];
-				Dices [j - 1] = temp;
-				j = j - 1;
-			}
-		}
-		for (int i = saves; i < Dices.Count; i++) {
+
+		//place every rolled dice into the saveds UI
+		for (int i = 0; i < dices.Count; i++) {
 			Saveds [i].GetComponent<Image> ().sprite =
-				Resources.Load<Sprite> ("Images/DieSide" + (int)(((GameObject)Dices [i]).GetComponent<DiceBehavior1> ().rolled));
+				Resources.Load<Sprite> ("Images/DieSide" + (int)dices [i]);
 			Saveds [i].SetActive(true);
-			Destroy ((UnityEngine.Object)Dices [i]);
+			Destroy ((UnityEngine.Object)Collection [i]);
+		}
+
+		if (!firstTurn && !secondTurn && !thirdTurn) {
+			toggleScoreSheet();
 		}
 	}
 
@@ -165,7 +180,7 @@ public class GameManager : MonoBehaviour {
 
 	public void dicesDebug() {
 		Debug.Log ("-------");
-		foreach (float die in dices) {
+		foreach (int die in dices) {
 			Debug.Log (die);
 		}
 		Debug.Log ("-------");
@@ -174,8 +189,8 @@ public class GameManager : MonoBehaviour {
 	private void sortArray() {
 		for (int i = 1; i < dices.Count; i++) {
 			int j = i;
-			while(j > 0 && (float)dices[j-1] > (float)dices[j]) {
-				float temp = (float)dices [j];
+			while(j > 0 && (int)dices[j-1] > (int)dices[j]) {
+				int temp = (int)dices [j];
 				dices [j] = dices [j - 1];
 				dices [j - 1] = temp;
 				j = j - 1;
@@ -183,16 +198,116 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
+	//Gives the given UI scoring object a permanent score
 	public void ScoreObject(GameObject Go) {
-		Scored [Go.name] = true;
+		Scored [Go.name] = true; // Marks the given object as scored
+
+		//deactivates all the other Input objects
 		foreach (GameObject input in GameObject.FindGameObjectsWithTag("Input")) {
 			input.GetComponent<Button> ().enabled = false;
 			input.GetComponent<Image> ().color = Color.white;
 		}
+			
 		Go.GetComponent<Image> ().color = LockedColor;
-		GameObject.Find ("CameraPivot").GetComponent<Spins> ().reset ();
+		reset (); 
 		toggleScoreSheet ();
 	}
+
+	//resets the round of the game
+	public void reset() {
+
+		// set gamestate to first turn
+		firstTurn = true;
+		secondTurn = false;
+		thirdTurn = false;
+
+		for (int i = 4; i >= 0; i--) {
+			Saveds [i].SetActive (false);
+		}
+		savedDice = 0;
+		foreach (GameObject die in GameObject.FindGameObjectsWithTag("Dice")) {
+			Destroy (die);
+		}
+		/*
+		foreach (GameObject die in GameObject.FindGameObjectsWithTag("Highlight")) {
+			Destroy (die);
+		}*/
+		dices = new ArrayList ();
+		RBB.FirstTurn ();
+	}
+
+	IEnumerator SummonDice(int num) {
+		GameObject.Find ("RollButton").GetComponent<Button> ().enabled = false;
+		int i = 0;
+		while (i < num) {
+			roll = (GameObject)Instantiate (dice, new Vector3(9f, 3.5f, 1f), Quaternion.identity);
+			roll.SetActive (true);
+			/*
+			roll = (GameObject)Instantiate (dice, GameObject.Find ("Main Camera").transform.position + new Vector3(0, -10, 0), Quaternion.identity);
+			roll.SetActive (true);
+			Vector3 camera = GameObject.Find ("CameraPivot").transform.rotation.eulerAngles;
+			if (camera.y < 45 || camera.y > 135 && camera.y < 225 || camera.y > 315) {
+				roll.GetComponent<Rigidbody> ().AddForce (new Vector3 ((float)(Random.Range (-28, 28) * (Mathf.Cos (Mathf.Deg2Rad * camera.y))), Random.Range (3, 10), (float)(Random.Range (50, 75) * (Mathf.Cos (Mathf.Deg2Rad * camera.y)))));
+			} else {
+				roll.GetComponent<Rigidbody> ().AddForce (new Vector3 ((float)(Random.Range (50, 75) * (Mathf.Sin (Mathf.Deg2Rad * camera.y))), Random.Range (3, 10), (float)(Random.Range (-28, 28) * (Mathf.Sin (Mathf.Deg2Rad * camera.y)))));
+			}
+			*/
+			roll.GetComponent<Rigidbody> ().AddForce (new Vector3 ((float)(Random.Range (-50, -75)), Random.Range (3, 10), (float)(Random.Range (-28, 28))));
+			roll.GetComponent<Rigidbody> ().AddTorque (new Vector3 (Random.Range (-30, 30), Random.Range (-30, 30), Random.Range (-30, 30)));
+			i++;
+			yield return new WaitForSeconds (.5f);
+		}
+	}
+
+	void Dice(int num) {
+		if (secondTurn || thirdTurn) {
+			savedDice = 5;
+			foreach (GameObject image in GameObject.FindGameObjectsWithTag("ImageHighlight")) {
+				Saveds [(int.Parse (image.name.Substring (5))) - 1].GetComponent<ButtonBehavior> ().Highlight ();
+				Saveds [(int.Parse (image.name.Substring (5))) - 1].SetActive (false);
+				removeDice (int.Parse (image.GetComponent<Image> ().sprite.name.Substring (7)));
+				savedDice--;
+			}
+			for (int i = 1; i < 5; i++) {
+				if (Saveds [i].activeSelf) {
+					int j = i;
+					while (j > 0 && !Saveds [j - 1].activeSelf) {
+						GameObject curtemp = Saveds [j];
+						GameObject prevtemp = Saveds [j - 1];
+						prevtemp.SetActive (true);
+						prevtemp.GetComponent<Image> ().sprite = curtemp.GetComponent<Image> ().sprite;
+						curtemp.SetActive (false);
+						j--;
+					}
+				}
+			}
+			/*foreach (GameObject die in GameObject.FindGameObjectsWithTag("Highlight")) {
+				saves [savedDice].SetActive(true);
+				saves[savedDice].GetComponent<Image> ().sprite = 
+				Resources.Load<Sprite> ("Images/DieSide" + (int)die.GetComponent<DiceBehavior1> ().rolled);
+				Destroy (die);
+				savedDice++;
+			}*/
+		}
+		StartCoroutine (SummonDice (num - savedDice));
+		if (firstTurn) {
+			firstTurn = false;
+			secondTurn = true;
+			RBB.NotFirstTurn ();
+
+		} else if (secondTurn) {
+			secondTurn = false;
+			thirdTurn = true;
+		} else {
+			thirdTurn = false;
+			GameObject.Find ("RollButton").SetActive(false);
+		}
+	}
+
+	public void StartSummonDice() {
+		Dice (numOfDice);
+	}
+
 
 	private void checkSpecialCases() {
 		if (!Scored["YahtzeeInput"]) {
@@ -242,8 +357,9 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public bool YahtzeeScore() {
-		float value = (float)dices[0];
-		foreach (float die in dices) {
+		int value = (int)dices[0];
+		foreach (int die in dices) {
+			Debug.Log (die);
 			if (die != value) {
 				return false;
 			}
@@ -257,10 +373,10 @@ public class GameManager : MonoBehaviour {
 			return false;
 		}
 		for (int i = 0; i < ((kind % 2) + 2); i++) {
-			float value = (float)dices [i];
+			int value = (int)dices [i];
 			int count = 1;
 			for (int j = i + 1; j < 5; j++) {
-				if ((float)dices [j] == value) {
+				if ((int)dices [j] == value) {
 					count++;
 				}
 				if (count == kind) {
@@ -271,24 +387,35 @@ public class GameManager : MonoBehaviour {
 		return false;
 	}
 
+	//boolean test to see if rolled values are in a straight formation of the given kind
 	public bool StraightScore(int kind) {
+		//debug check to see if given int is a valid staight
 		if (kind != 4 && kind != 5) {
 			Debug.Log ("Wrong kind of straight");
 			return false;
 		}
-		float value = (float)dices [0];
+
+		int startIndex = 1; 
+		int value = (int)dices [0];
+
+		//initial check to reduce computation
 		if (value != 1 && value != 2 && value != 3) {
 			return false;
+		} else if (kind == 4 && (int)dices [1] == value + 2) { //for the special case of [1,3,4,5,6]
+			value = (int)dices [1];
+			startIndex = 2;
 		}
 		int count = 1;
-		for (int i = 1; i < 5; i++) {
-			if ((float)dices [i] != value + 1 && (float)dices [i] != value) {
+		for (int i = startIndex; i < 5; i++) {
+			if ((int)dices [i] != value + 1 && (int)dices [i] != value) { //checks sequential ordering or duplicates
 				return false;
 			}
-			if ((float)dices [i] == value + 1) {
+			if ((int)dices [i] == value + 1) { //if order is sequential
 				count++;
+			} else if(kind != 4) { //if duplicates exists
+				return false;
 			}
-			value = (float)dices [i];
+			value = (int)dices [i];
 		}
 		if (count >= kind) {
 			return true;
@@ -297,23 +424,23 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public bool FullHouseScore() {
-		float value = (float)dices [0];
+		int value = (int)dices [0];
 		int count = 1;
 		for (int i = 1; i < 5; i++) {
-			if ((float)dices [i] == value) {
+			if ((int)dices [i] == value) {
 				count++;
 			}
 		}
 		if (count == 2 || count == 3) {
-			if ((float)dices [1] == (float)dices [0]) {
-				if ((float)dices [2] == (float)dices [0]) {
-					if ((float)dices [3] == (float)dices [4]) {
+			if ((int)dices [1] == (int)dices [0]) {
+				if ((int)dices [2] == (int)dices [0]) {
+					if ((int)dices [3] == (int)dices [4]) {
 						return true;
 					}
-				} else if ((float)dices [2] == (float)dices [3] && (float)dices [2] == (float)dices [4]) {
+				} else if ((int)dices [2] == (int)dices [3] && (int)dices [2] == (int)dices [4]) {
 					return true;
 				}
-			} else if((float)dices[1] == (float)dices[2] || (float)dices[1] == (float)dices[3]){
+			} else if((int)dices[1] == (int)dices[2] || (int)dices[1] == (int)dices[3]){
 				return true;
 			}
 		}

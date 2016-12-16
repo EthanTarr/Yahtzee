@@ -48,6 +48,7 @@
      <Compile Include="Assets\Scripts\ButtonBehavior.cs" />
      <Compile Include="Assets\Scripts\CloseOnExit.cs" />
      <Compile Include="Assets\Scripts\DiceBehavior1.cs" />
+     <Compile Include="Assets\Scripts\DiceSound.cs" />
      <Compile Include="Assets\Scripts\GameManager.cs" />
      <Compile Include="Assets\Scripts\ImageBehavior.cs" />
      <Compile Include="Assets\Scripts\InputButtonBehavior.cs" />
@@ -55,6 +56,13 @@
      <Compile Include="Assets\Scripts\ScoreInputBehavior.cs" />
      <Compile Include="Assets\Scripts\Spins.cs" />
      <Compile Include="Assets\Scripts\TotalBehavior.cs" />
+     <Compile Include="Assets\Splines\Scripts\HelperClasses\Set.cs" />
+     <Compile Include="Assets\Splines\Scripts\HelperClasses\Utility.cs" />
+     <Compile Include="Assets\Splines\Scripts\SplineClasses\Spline.cs" />
+     <Compile Include="Assets\Splines\Scripts\SplineClasses\SplineColliderDraw.cs" />
+     <Compile Include="Assets\Splines\Scripts\SplineClasses\SplineController.cs" />
+     <Compile Include="Assets\Splines\Scripts\SplineClasses\SplineNode.cs" />
+     <Compile Include="Assets\Splines\Scripts\SplineClasses\SplineTester.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>

@@ -2,7 +2,10 @@
 using System.Collections;
 
 public class DiceBehavior1 : MonoBehaviour {
-	public float rolled;
+	public int rolled;
+	public AudioClip Dice;
+	public AudioClip Table;
+	private AudioSource audio;
 	private float prevPos;
 	private bool activated;
 
@@ -10,6 +13,7 @@ public class DiceBehavior1 : MonoBehaviour {
 	void Start () {
 		prevPos = -10000;
 		activated = false;
+		audio = GetComponent<AudioSource> ();
 	}
 	
 	// Update is called once per frame
@@ -17,7 +21,7 @@ public class DiceBehavior1 : MonoBehaviour {
 		if (this.GetComponent<Rigidbody> ().IsSleeping () && !activated) {
 			foreach (Transform tran in this.GetComponentInChildren<Transform> ()) {
 				if (prevPos < tran.position.y) {
-					rolled = float.Parse (tran.gameObject.name);
+					rolled = int.Parse (tran.gameObject.name);
 					prevPos = tran.position.y;
 				}
 			}
@@ -47,10 +51,14 @@ public class DiceBehavior1 : MonoBehaviour {
 		}
 	}
 
-	/*void OnMouseDrag() {
-		Vector3 camPos = GameObject.Find("Main Camera").transform.position;
-		RectTransform screen = GameObject.Find ("Canvas").GetComponent<RectTransform> ();
-		this.transform.position = new Vector3 (camPos.x + (Input.mousePosition.x / screen.rect.width), 
-			camPos.y - 4 + (Input.mousePosition.y / screen.rect.height), camPos.z + 5);
-	}*/
+	void OnCollisionEnter(Collision other) {
+		if (other.relativeVelocity.magnitude > 1) {
+			audio.pitch = 1 + Random.value;
+			if (other.gameObject.name.Equals ("Dice(Clone)")) {
+				audio.PlayOneShot (Dice);
+			} else {
+				audio.PlayOneShot (Table);
+			}
+		}
+	}
 }

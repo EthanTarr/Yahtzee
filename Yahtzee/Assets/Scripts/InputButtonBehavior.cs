@@ -29,13 +29,18 @@ public class InputButtonBehavior : MonoBehaviour, IPointerEnterHandler, IPointer
 				ChangeUpperNumber (5);
 			} else if (this.gameObject.name.Equals ("SixesInput")) {
 				ChangeUpperNumber (6);
-			} else if (this.gameObject.name.Equals ("ThreeOfAKindInput") || 
-				this.gameObject.name.Equals ("FourOfAKindInput") || 
-				this.gameObject.name.Equals ("ChanceInput")) {
-				if (this.gameObject.name.Equals ("ThreeOfAKindInput") && GO.OfAKindScore (3) ||
-				   this.gameObject.name.Equals ("FourOfAKindInput") && GO.OfAKindScore (4)) {
+			} else if (this.gameObject.name.Equals ("ThreeOfAKindInput")) {
+				if (GO.OfAKindScore (3)) {
 					ChangeTotalNumber ();
 				}
+				this.gameObject.GetComponent<Image> ().color = OnHighlight;
+			} else if(this.gameObject.name.Equals ("FourOfAKindInput")) {
+				if (GO.OfAKindScore (4)) {
+					ChangeTotalNumber ();
+				}
+				this.gameObject.GetComponent<Image> ().color = OnHighlight;
+			} else if(this.gameObject.name.Equals ("ChanceInput")) {
+				ChangeTotalNumber ();
 				this.gameObject.GetComponent<Image> ().color = OnHighlight;
 			} else if (this.gameObject.name.Equals ("SmallStraightInput")) {
 				if(GO.StraightScore(4)) {
@@ -69,16 +74,16 @@ public class InputButtonBehavior : MonoBehaviour, IPointerEnterHandler, IPointer
 	}
 
 	private void ChangeTotalNumber() {
-		float sum = 0;
-		foreach (float num in GameObject.Find("GameManager").GetComponent<GameManager>().dices) {
+		int sum = 0;
+		foreach (int num in GameObject.Find("GameManager").GetComponent<GameManager>().dices) {
 			sum += num;
 		}
 		this.gameObject.GetComponentInChildren<Text> ().text = "" + sum;
 	}
 
-	private void ChangeUpperNumber(float value) {
-		float sum = 0;
-		foreach (float num in GameObject.Find("GameManager").GetComponent<GameManager>().dices) {
+	private void ChangeUpperNumber(int value) {
+		int sum = 0;
+		foreach (int num in GameObject.Find("GameManager").GetComponent<GameManager>().dices) {
 			if (num == value) {
 				sum += num;
 			}
