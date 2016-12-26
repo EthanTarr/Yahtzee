@@ -14,8 +14,9 @@ public class InputButtonBehavior : MonoBehaviour, IPointerEnterHandler, IPointer
 		GO = GameObject.Find ("GameManager").GetComponent<GameManager> ();
 	}
 
+	//checks what input this GameObject is and updates its score value accordingly
 	public void OnPointerEnter(PointerEventData eventData) {
-		if (this.gameObject.GetComponent<Button> ().enabled) {
+		if (this.gameObject.GetComponent<Button> ().enabled) { //check to see if this has been scored already
 			prevValue = this.gameObject.GetComponentInChildren<Text> ().text;
 			if (this.gameObject.name.Equals ("AcesInput")) {
 				ChangeUpperNumber (1);
@@ -66,6 +67,7 @@ public class InputButtonBehavior : MonoBehaviour, IPointerEnterHandler, IPointer
 		}
 	}
 
+	//restores GameObject to previous state
 	public void OnPointerExit(PointerEventData eventData) {
 		if (this.gameObject.GetComponent<Button> ().enabled) {
 			this.gameObject.GetComponentInChildren<Text> ().text = prevValue;
@@ -73,6 +75,7 @@ public class InputButtonBehavior : MonoBehaviour, IPointerEnterHandler, IPointer
 		}
 	}
 
+	//changes value to appropriate number
 	private void ChangeTotalNumber() {
 		int sum = 0;
 		foreach (int num in GameObject.Find("GameManager").GetComponent<GameManager>().dices) {
@@ -81,6 +84,7 @@ public class InputButtonBehavior : MonoBehaviour, IPointerEnterHandler, IPointer
 		this.gameObject.GetComponentInChildren<Text> ().text = "" + sum;
 	}
 
+	//changes balue to appropriate number
 	private void ChangeUpperNumber(int value) {
 		int sum = 0;
 		foreach (int num in GameObject.Find("GameManager").GetComponent<GameManager>().dices) {

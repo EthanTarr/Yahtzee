@@ -28,9 +28,9 @@ public class GameManager : MonoBehaviour {
 	private GameObject Yahtzee;
 	private GameObject dice;
 	private GameObject roll;
+	private GameObject PowerGuage;
 	private GameObject[] Saveds;
 	private Dictionary<string, bool> Scored;
-	private RollButtonBehavior RBB;
 	private Color HighlightedButtonColor = new Color (210/255f, 187/255f, 118/255f, 138/255f);
 	private Color LockedColor = new Color(200/255f, 200/255f, 200/255f, 128/255f);
 
@@ -39,14 +39,14 @@ public class GameManager : MonoBehaviour {
 		populateGameObjects ();
 		ScoreSheet.SetActive (false);
 		populateDictionary();
-		RBB = GameObject.Find ("RollButton").GetComponent<RollButtonBehavior> ();
 		dice.SetActive (false);
 		//dicePosition = new Vector3 (0, 2, -5);
 		expandCarpet ();
 	}
 
 	void Update () {
-		
+
+		//------- debug controls --------
 		if (Input.GetKeyDown ("g")) {
 			dicesDebug ();
 		} else if (Input.GetKeyDown ("q")) {
@@ -55,11 +55,11 @@ public class GameManager : MonoBehaviour {
 			toggleScoreSheet ();
 		} else if (Input.GetKeyDown ("t")) {
 			dices = new ArrayList ();
+			dices.Add (1);
+			dices.Add (3);
+			dices.Add (4);
 			dices.Add (5);
-			dices.Add (5);
-			dices.Add (5);
-			dices.Add (5);
-			dices.Add (5);
+			dices.Add (6);
 			Debug.Log ("FH " + FullHouseScore ());
 			Debug.Log ("SMS " + StraightScore (4));
 			Debug.Log ("LGS " + StraightScore (5));
@@ -67,8 +67,14 @@ public class GameManager : MonoBehaviour {
 			Debug.Log ("4K " + OfAKindScore (4));
 			Debug.Log ("YTZ " + YahtzeeScore ());
 		}
+		//-------------------------------
+
+		if (GetComponent<AudioSource> ().volume < 1) {
+			GetComponent<AudioSource> ().volume += .1f * Time.deltaTime;
+		}
 	}
 
+	//takes the carpet object and duplicates it in both x and z directions
 	private void expandCarpet() {
 		GameObject cp = GameObject.Find ("Carpet");
 		GameObject cps = GameObject.Find ("Carpets");
@@ -80,6 +86,7 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
+	//populates the scored field dictionary
 	private void populateDictionary() {
 		Scored = new Dictionary<string, bool> ();
 		Scored.Add ("AcesInput", false);
@@ -97,6 +104,7 @@ public class GameManager : MonoBehaviour {
 		Scored.Add ("ChanceInput", false);
 	}
 
+	//populates the field GameObjects
 	private void populateGameObjects() {
 		Aces = GameObject.Find ("AcesInput");
 		Twos = GameObject.Find ("TwosInput");
@@ -113,6 +121,7 @@ public class GameManager : MonoBehaviour {
 		Yahtzee = GameObject.Find ("YahtzeeInput");
 		ScoreSheet = GameObject.Find ("ScoreSheet");
 		dice = GameObject.Find ("Dice");
+		PowerGuage = GameObject.Find ("PowerGuage");
 		Saveds = new GameObject[5];
 		for (int i = 1; i <= 5; i++) {
 			Saveds[i - 1] = (GameObject.Find ("Saved" + i));
@@ -120,6 +129,7 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
+	//adds the given int die to the dices array
 	public void addDice(int die) {
 		dices.Add (die);
 		if (dices.Count == 5) {
@@ -132,6 +142,7 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
+	//removes the given int die from the dices array
 	public void removeDice(int die) {
 		//Debug.Log ("removing " + die);
 		if (dices.Contains (die)) {
@@ -141,6 +152,7 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
+	//takes all rolled dice and converts them into UI icons
 	public void addDiceToIcons() {
 		ArrayList Collection = new ArrayList (); //GameObjects of rolled dice
 
@@ -164,11 +176,16 @@ public class GameManager : MonoBehaviour {
 			Destroy ((UnityEngine.Object)Collection [i]);
 		}
 
+		//enables roll button
+		PowerGuage.GetComponent<PowerBehavior> ().canRoll = true;
+
+		//if all rolls have been used toggle Score Sheet
 		if (!firstTurn && !secondTurn && !thirdTurn) {
 			toggleScoreSheet();
 		}
 	}
 
+	//Toggles the activation of the scoresheet
 	public void toggleScoreSheet() {
 		if (ScoreSheet.activeSelf) {
 			ScoreSheet.GetComponent<Animator> ().SetTrigger ("Close");
@@ -178,6 +195,7 @@ public class GameManager : MonoBehaviour {
 		}
 	}
 
+	//debug prints the contents of the dices array
 	public void dicesDebug() {
 		Debug.Log ("-------");
 		foreach (int die in dices) {
@@ -186,6 +204,7 @@ public class GameManager : MonoBehaviour {
 		Debug.Log ("-------");
 	}
 
+	//insert sorts the dices array
 	private void sortArray() {
 		for (int i = 1; i < dices.Count; i++) {
 			int j = i;
@@ -209,6 +228,7 @@ public class GameManager : MonoBehaviour {
 		}
 			
 		Go.GetComponent<Image> ().color = LockedColor;
+		Go.tag = "Untagged";
 		reset (); 
 		toggleScoreSheet ();
 	}
@@ -221,27 +241,30 @@ public class GameManager : MonoBehaviour {
 		secondTurn = false;
 		thirdTurn = false;
 
+		// deactivate dice UI icons
 		for (int i = 4; i >= 0; i--) {
 			Saveds [i].SetActive (false);
 		}
 		savedDice = 0;
+
+		// Remove all dice in play
 		foreach (GameObject die in GameObject.FindGameObjectsWithTag("Dice")) {
 			Destroy (die);
 		}
-		/*
-		foreach (GameObject die in GameObject.FindGameObjectsWithTag("Highlight")) {
-			Destroy (die);
-		}*/
+
 		dices = new ArrayList ();
-		RBB.FirstTurn ();
+		PowerGuage.GetComponent<PowerBehavior>().FirstTurn ();
 	}
 
-	IEnumerator SummonDice(int num) {
-		GameObject.Find ("RollButton").GetComponent<Button> ().enabled = false;
+	//instantiates the given int num dice and gives them force depending on the given float power
+	IEnumerator SummonDice(int num, float power, float angle) {
 		int i = 0;
 		while (i < num) {
-			roll = (GameObject)Instantiate (dice, new Vector3(9f, 3.5f, 1f), Quaternion.identity);
+			roll = (GameObject)Instantiate (dice, new Vector3(9f, 3.5f, 1f), Quaternion.Euler(new Vector3(Random.Range (-180, 180), Random.Range (-180, 180), Random.Range (-180, 180))));
 			roll.SetActive (true);
+
+			// code is for when camera rotation is implemented
+
 			/*
 			roll = (GameObject)Instantiate (dice, GameObject.Find ("Main Camera").transform.position + new Vector3(0, -10, 0), Quaternion.identity);
 			roll.SetActive (true);
@@ -252,22 +275,35 @@ public class GameManager : MonoBehaviour {
 				roll.GetComponent<Rigidbody> ().AddForce (new Vector3 ((float)(Random.Range (50, 75) * (Mathf.Sin (Mathf.Deg2Rad * camera.y))), Random.Range (3, 10), (float)(Random.Range (-28, 28) * (Mathf.Sin (Mathf.Deg2Rad * camera.y)))));
 			}
 			*/
-			roll.GetComponent<Rigidbody> ().AddForce (new Vector3 ((float)(Random.Range (-50, -75)), Random.Range (3, 10), (float)(Random.Range (-28, 28))));
+
+			if (power == 0 && angle == 0) { // if power is not specified
+				roll.GetComponent<Rigidbody> ().AddForce (new Vector3 ((float)(Random.Range (-50, -75)), Random.Range (3, 10), (float)(Random.Range (-28, 28))));
+			} else {
+				Debug.Log ("power = " + ((power * -60) - 15));
+				Debug.Log ("power = " + (angle * 28));
+				roll.GetComponent<Rigidbody> ().AddForce (new Vector3 ((power * -70) - 5, Random.Range (3, 10), (angle * 20) + (float)(Random.Range(-10, 10))));
+			}
+
 			roll.GetComponent<Rigidbody> ().AddTorque (new Vector3 (Random.Range (-30, 30), Random.Range (-30, 30), Random.Range (-30, 30)));
 			i++;
 			yield return new WaitForSeconds (.5f);
 		}
 	}
 
-	void Dice(int num) {
+	// summons dice depending on what is indicated by UI and updates turn counter
+	void Dice(float power, float angle) {
+
+		//checks UI for dice to reroll and updates it accordingly
 		if (secondTurn || thirdTurn) {
 			savedDice = 5;
+			//deactivates highlighted UI dice and removes them from the dices array
 			foreach (GameObject image in GameObject.FindGameObjectsWithTag("ImageHighlight")) {
 				Saveds [(int.Parse (image.name.Substring (5))) - 1].GetComponent<ButtonBehavior> ().Highlight ();
 				Saveds [(int.Parse (image.name.Substring (5))) - 1].SetActive (false);
 				removeDice (int.Parse (image.GetComponent<Image> ().sprite.name.Substring (7)));
 				savedDice--;
 			}
+			//relocates all remaining UI dice to priority UI spots
 			for (int i = 1; i < 5; i++) {
 				if (Saveds [i].activeSelf) {
 					int j = i;
@@ -281,34 +317,35 @@ public class GameManager : MonoBehaviour {
 					}
 				}
 			}
-			/*foreach (GameObject die in GameObject.FindGameObjectsWithTag("Highlight")) {
-				saves [savedDice].SetActive(true);
-				saves[savedDice].GetComponent<Image> ().sprite = 
-				Resources.Load<Sprite> ("Images/DieSide" + (int)die.GetComponent<DiceBehavior1> ().rolled);
-				Destroy (die);
-				savedDice++;
-			}*/
 		}
-		StartCoroutine (SummonDice (num - savedDice));
+
+		//instatiate appropriate number of dice
+		StartCoroutine (SummonDice (numOfDice - savedDice, power, angle));
+
+		//update turn state
 		if (firstTurn) {
 			firstTurn = false;
 			secondTurn = true;
-			RBB.NotFirstTurn ();
+			PowerGuage.GetComponent<PowerBehavior> ().NotFirstTurn ();
 
 		} else if (secondTurn) {
 			secondTurn = false;
 			thirdTurn = true;
 		} else {
 			thirdTurn = false;
-			GameObject.Find ("RollButton").SetActive(false);
+			PowerGuage.SetActive (false);
 		}
 	}
 
 	public void StartSummonDice() {
-		Dice (numOfDice);
+		Dice (0f, 0f);
 	}
 
+	public void StartSummonDice(float power, float angle) {
+		Dice (power, angle);
+	}
 
+	//intermediate function to check if a value has been scored already and to display its value if it hasn't
 	private void checkSpecialCases() {
 		if (!Scored["YahtzeeInput"]) {
 			effectChoice(Yahtzee);
@@ -350,12 +387,16 @@ public class GameManager : MonoBehaviour {
 			effectChoice(Sixes);
 		}
 	}
-
+		
 	private void effectChoice(GameObject Go) {
 		Go.GetComponent<Button> ().enabled = true;
 		//Go.GetComponent<Image> ().color = HighlightedButtonColor;
 	}
 
+	//-------------------------  tests for values in array 'dices' ----------------------------
+	// works under the assumption that array 'dices' is sorted and contains five values that range from 1 - 6
+
+	//boolean test for a yahtzee (all values are the same in the array)
 	public bool YahtzeeScore() {
 		int value = (int)dices[0];
 		foreach (int die in dices) {
@@ -367,6 +408,7 @@ public class GameManager : MonoBehaviour {
 		return true;
 	}
 
+	//boolean test for a four or three of a kind (contains at least that many of the same value in the array)
 	public bool OfAKindScore(int kind) {
 		if (kind != 3 && kind != 4) {
 			Debug.Log ("Wrong kind of kind");
@@ -387,7 +429,8 @@ public class GameManager : MonoBehaviour {
 		return false;
 	}
 
-	//boolean test to see if rolled values are in a straight formation of the given kind
+	//boolean test to see if rolled values are in a straight formation of the given kind 
+	//(sequential increase of values for 4 values for the small or all 5 for the large)
 	public bool StraightScore(int kind) {
 		//debug check to see if given int is a valid staight
 		if (kind != 4 && kind != 5) {
@@ -407,6 +450,9 @@ public class GameManager : MonoBehaviour {
 		}
 		int count = 1;
 		for (int i = startIndex; i < 5; i++) {
+			if (count >= kind) {
+				return true;
+			}
 			if ((int)dices [i] != value + 1 && (int)dices [i] != value) { //checks sequential ordering or duplicates
 				return false;
 			}
@@ -423,6 +469,7 @@ public class GameManager : MonoBehaviour {
 		return false;
 	}
 
+	//boolean test for a full house (three values are the same and the other two are the same but different to the value of the first three)
 	public bool FullHouseScore() {
 		int value = (int)dices [0];
 		int count = 1;

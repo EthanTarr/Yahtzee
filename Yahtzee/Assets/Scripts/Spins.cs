@@ -8,14 +8,12 @@ public class Spins : MonoBehaviour {
 	private float xLimit;
 	private float zLimit;
 	private GameManager GO;
-	private RollButtonBehavior RBB;
 
 
 	// Use this for initialization
 	void Start () {
 		
 		GO = GameObject.Find ("GameManager").GetComponent<GameManager> ();
-		RBB = GameObject.Find ("RollButton").GetComponent<RollButtonBehavior> ();
 		if (GameObject.Find ("Floor")) {
 			xLimit = GameObject.Find ("Floor").transform.localScale.x * 5;
 			zLimit = GameObject.Find ("Floor").transform.localScale.z * 5;
@@ -23,15 +21,19 @@ public class Spins : MonoBehaviour {
 
 
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		/*
+
+	void FixedUpdate() {
 		if (spinControls) {
-			if (Input.GetKey (KeyCode.A)) {
-				transform.Rotate (0, speed, 0);
-			} else if (Input.GetKey (KeyCode.D)) {
-				transform.Rotate (0, -speed, 0);
+			int cameraRotation = (int) transform.localRotation.eulerAngles.y;
+			if(Input.GetKey(KeyCode.V)) {
+				Debug.Log(cameraRotation);
+			}
+			if (cameraRotation <= 90 || cameraRotation >= 270) { // boundaries
+				transform.Rotate (0, -speed * Input.GetAxis("Horizontal"), 0);
+			} else if (cameraRotation > 90 && cameraRotation < 180) {
+				transform.eulerAngles = new Vector3 (0, 90, 0);
+			} else { // (cameraRotation < 270 && cameraRotation > 180)
+				transform.eulerAngles = new Vector3 (0, 270, 0);
 			}
 		} else {
 			if (Input.GetKey (KeyCode.W) && transform.position.z <= zLimit) {
@@ -45,28 +47,18 @@ public class Spins : MonoBehaviour {
 				transform.Translate (speed, 0, 0);
 			} 
 		}
-		*/
+	}
+	
+	// Update is called once per frame
+	void Update () {
+		
 		if (Input.GetKey (KeyCode.Space)) {
 			Application.LoadLevel (Application.loadedLevel);
 		} 
 		if (Input.GetKey (KeyCode.Escape)) {
 			Application.Quit();
 		}
+			
 	}
-
-
-
-	/*
-	public void unsave() {
-		float xLocation = Random.Range (-xLimit, xLimit);
-		float zLocation = Random.Range (-zLimit, zLimit);
-		foreach (GameObject die in GO.dices) {
-			if (xLocation <= die.transform.position.x + .5 && xLocation >= die.transform.position.x - .5) {
-
-			}
-		}
-		Vector3 pos = new Vector3 (xLocation, 1,zLocation);
-		Instantiate (dice, dicePosition, Quaternion.identity);
-	}
-	*/
+		
 }

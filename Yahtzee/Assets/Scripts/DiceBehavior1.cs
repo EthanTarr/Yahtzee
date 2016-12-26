@@ -7,6 +7,7 @@ public class DiceBehavior1 : MonoBehaviour {
 	public AudioClip Table;
 	private AudioSource audio;
 	private float prevPos;
+	private float time;
 	private bool activated;
 
 	// Use this for initialization
@@ -14,11 +15,12 @@ public class DiceBehavior1 : MonoBehaviour {
 		prevPos = -10000;
 		activated = false;
 		audio = GetComponent<AudioSource> ();
+		time = Time.time;
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (this.GetComponent<Rigidbody> ().IsSleeping () && !activated) {
+		if ((this.GetComponent<Rigidbody> ().IsSleeping () && !activated) || Time.time - time > 60) {
 			foreach (Transform tran in this.GetComponentInChildren<Transform> ()) {
 				if (prevPos < tran.position.y) {
 					rolled = int.Parse (tran.gameObject.name);
@@ -35,24 +37,8 @@ public class DiceBehavior1 : MonoBehaviour {
 		}
 	}
 
-	void OnMouseDown() {
-		if (this.GetComponent<Rigidbody> ().IsSleeping ()) {
-			if (this.tag.Equals ("Highlight")) {
-				this.tag = "Dice";
-				foreach (SpriteRenderer sr in this.GetComponentsInChildren<SpriteRenderer>()) {
-					sr.color = Color.white;
-				}
-			} else {
-				this.tag = "Highlight";
-				foreach (SpriteRenderer sr in this.GetComponentsInChildren<SpriteRenderer>()) {
-					sr.color = Color.grey;
-				}
-			}
-		}
-	}
-
 	void OnCollisionEnter(Collision other) {
-		if (other.relativeVelocity.magnitude > 1) {
+		if (other.relativeVelocity.magnitude > .3f) {
 			audio.pitch = 1 + Random.value;
 			if (other.gameObject.name.Equals ("Dice(Clone)")) {
 				audio.PlayOneShot (Dice);
